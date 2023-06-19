@@ -33,10 +33,8 @@ public abstract class Conta {
     public boolean sacar(double valor) {
         if (valor <= saldo) {
             saldo -= valor;
-            System.out.printf("Saque de %.2f realizado. Novo saldo: R$%.2f\n" , valor, saldo);
             return true;
         } else {
-            System.out.println("Saldo insuficiente para saque.");
             return false;
         }
     }
