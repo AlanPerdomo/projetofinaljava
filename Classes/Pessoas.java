@@ -1,9 +1,7 @@
 package Classes;
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
-import Data.DbContext;
 
 public class Pessoas {
     // Atributos
