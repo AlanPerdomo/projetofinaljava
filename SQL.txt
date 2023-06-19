@@ -15,7 +15,7 @@ CREATE TABLE public.contas (
     cpf TEXT NOT NULL,
     numeroconta INT NOT NULL,
     tipo TEXT NOT NULL,
-    saldo DECIMAL(10,2)
+    saldo DECIMAL(1000,2)
 );
 
 -- Change owner of 'contas' table to 'postgres'

@@ -49,7 +49,7 @@ public class Main {
                             scanner.nextLine(); // Limpar o buffer do scanner
                             System.out.println("=====================================");
                         } catch (Exception e) {
-                            System.out.println("Opção inválida. Tente novamente.");
+                            System.out.println("\nOpção inválida. Tente novamente.");
                             opcao2 = -1; // Definir opção inválida para continuar o loop
                         }
 
@@ -61,7 +61,7 @@ public class Main {
                                 listarContas();
                                 break;
                             default:
-                                System.out.println("Opção inválida. Tente novamente.\n");
+                                System.out.println("\nOpção inválida. Tente novamente.");
                                 break;
                         }
                         break;
@@ -76,7 +76,7 @@ public class Main {
                             scanner.nextLine(); // Limpar o buffer do scanner
                             System.out.println("=====================================");
                         } catch (Exception e) {
-                            System.out.println("Opção inválida. Tente novamente.");
+                            System.out.println("\nOpção inválida. Tente novamente.");
                             opcao2 = -1; // Definir opção inválida para continuar o loop
                         }
 
@@ -90,7 +90,7 @@ public class Main {
                                 deletarConta();
                                 break;
                             default:
-                                System.out.println("Opção inválida. Tente novamente.\n");
+                                System.out.println("\nOpção inválida. Tente novamente.");
                                 break;
                         }
 
