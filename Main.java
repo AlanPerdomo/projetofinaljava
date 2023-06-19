@@ -1,7 +1,5 @@
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -12,18 +10,18 @@ import Classes.Pessoas;
 import Data.DbContext;
 
 public class Main {
-    private static List<Pessoas> listaPessoas = new ArrayList<>();
-    private static List<Conta> listaContas = new ArrayList<>();
     private static Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
         exibirMenu();
 
         int opcao;
+        int opcao2;
 
         try {
             opcao = scanner.nextInt();
             scanner.nextLine(); // Limpar o buffer do scanner
+            System.out.println("=====================================");
         } catch (Exception e) {
             System.out.println("Opção inválida. Tente novamente.");
             return;
@@ -33,25 +31,80 @@ public class Main {
             try {
                 switch (opcao) {
                     case 1:
+                        System.out.println("\nCADASTRAR PESSOA\n");
                         cadastrarPessoa();
                         break;
                     case 2:
-                        listarPessoas();
-                        break;
-                    case 3:
+                        System.out.println("\nCRIAR CONTA\n");
                         criarConta();
                         break;
+                    case 3:
+                        System.out.println("Escolha uma opção:\n");
+                        System.out.println("1 - Listar Pessoas");
+                        System.out.println("2 - Listar Contas");
+                        System.out.print("\nOpção: ");
+
+                        try {
+                            opcao2 = scanner.nextInt();
+                            scanner.nextLine(); // Limpar o buffer do scanner
+                            System.out.println("=====================================");
+                        } catch (Exception e) {
+                            System.out.println("Opção inválida. Tente novamente.");
+                            opcao2 = -1; // Definir opção inválida para continuar o loop
+                        }
+
+                        switch (opcao2) {
+                            case 1:
+                                listarPessoas();
+                                break;
+                            case 2:
+                                listarContas();
+                                break;
+                            default:
+                                System.out.println("Opção inválida. Tente novamente.\n");
+                                break;
+                        }
+                        break;
                     case 4:
-                        listarContas();
+                        System.out.println("Escolha uma opção:\n");
+                        System.out.println("1 - Deletar Pessoa");
+                        System.out.println("2 - Deletar Conta");
+                        System.out.print("\nOpção: ");
+
+                        try {
+                            opcao2 = scanner.nextInt();
+                            scanner.nextLine(); // Limpar o buffer do scanner
+                            System.out.println("=====================================");
+                        } catch (Exception e) {
+                            System.out.println("Opção inválida. Tente novamente.");
+                            opcao2 = -1; // Definir opção inválida para continuar o loop
+                        }
+
+                        switch (opcao2) {
+                            case 1:
+                                System.out.println("\nDELETAR PESSOA\n");
+                                deletarPessoa();
+                                break;
+                            case 2:
+                                System.out.println("\nDELETAR CONTA\n");
+                                deletarConta();
+                                break;
+                            default:
+                                System.out.println("Opção inválida. Tente novamente.\n");
+                                break;
+                        }
+
                         break;
                     case 5:
+                        System.out.println("\nDEPOSITO\n");
                         realizarDeposito();
                         break;
                     case 6:
+                        System.out.println("\nSAQUE\n");
                         realizarSaque();
                         break;
                     default:
-                        System.out.println("Opção inválida. Tente novamente.");
+                        System.out.println("Opção inválida. Tente novamente.\n");
                         break;
                 }
             } catch (Exception e) {
@@ -63,6 +116,7 @@ public class Main {
             try {
                 opcao = scanner.nextInt();
                 scanner.nextLine(); // Limpar o buffer do scanner
+                System.out.println("=====================================");
             } catch (Exception e) {
                 System.out.println("Opção inválida. Tente novamente.");
                 opcao = -1; // Definir opção inválida para continuar o loop
@@ -74,16 +128,18 @@ public class Main {
     }
 
     public static void exibirMenu() {
-        System.out.println("\n----- Bem-vindo -----\n");
-        System.out.println("Escolha uma opção:");
+        System.out.println("\n=====================");
+        System.out.println("----- Bem-vindo -----");
+        System.out.println("=====================\n");
+        System.out.println("Escolha uma opção:\n");
         System.out.println("1 - Cadastrar Pessoa");
-        System.out.println("2 - Listar Pessoas");
-        System.out.println("3 - Criar Conta");
-        System.out.println("4 - Listar Contas");
+        System.out.println("2 - Criar Conta");
+        System.out.println("3 - Listar Pessoas ou Contas");
+        System.out.println("4 - Deletar Pessoa ou Conta");
         System.out.println("5 - Depositar");
         System.out.println("6 - Sacar");
         System.out.println("0 - Sair");
-        System.out.print("Opção: ");
+        System.out.print("\nOpção: ");
     }
 
     public static void cadastrarPessoa() {
@@ -114,9 +170,112 @@ public class Main {
                 boolean statusQuery = database.executarUpdateSql(
                         "INSERT INTO public.pessoas(nome, cpf) VALUES ('" + nome + "', '" + cpf + "')");
                 if (statusQuery) {
+                    System.out.println("-------------------------------------");
                     System.out.println("'" + nome + "' foi cadastrado(a)!");
+                    System.out.println("-------------------------------------");
                 }
             }
+            database.desconectarBanco();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void deletarPessoa() {
+        System.out.print("Digite o CPF da pessoa a ser deletada: ");
+        String cpf = scanner.nextLine();
+
+        Pessoas pessoa = buscarPessoaPorCPF(cpf);
+        if (pessoa == null) {
+            System.out.println("CPF não encontrado. Tente novamente.");
+            return;
+        }
+
+        System.out.println(
+                "\nTodas as Contas da pessoa serão deletadas. \nDeseja realmente deletar a pessoa com CPF " + cpf
+                        + " ? (S/N): ");
+        String confirmacao = scanner.nextLine().toUpperCase();
+        if (!confirmacao.equals("S")) {
+            System.out.println("Operação cancelada.");
+            return;
+        }
+
+        String nome = pessoa.getNome();
+
+        DbContext database = new DbContext();
+
+        try {
+            database.conectarBanco();
+
+            // Deletar as contas associadas ao CPF
+            boolean statusContaQuery = database
+                    .executarUpdateSql("DELETE FROM public.contas WHERE cpf = '" + cpf + "'");
+            if (statusContaQuery) {
+                System.out.println("\n Todas as contas associadas ao CPF " + cpf + " foram deletadas.");
+            }
+
+            // Deletar a pessoa com o CPF especificado
+            boolean statusPessoaQuery = database
+                    .executarUpdateSql("DELETE FROM public.pessoas WHERE cpf = '" + cpf + "'");
+            if (statusPessoaQuery) {
+                System.out.println("O usuário " + nome + " com CPF " + cpf + " foi deletado.");
+            }
+
+            database.desconectarBanco();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void deletarConta() {
+        System.out.print("Digite o número da conta a ser deletada: ");
+        int numeroConta;
+
+        try {
+            numeroConta = scanner.nextInt();
+            scanner.nextLine(); // Limpar o buffer do scanner
+        } catch (Exception e) {
+            System.out.println("Número de conta inválido. Tente novamente.");
+            return;
+        }
+
+        Conta conta = buscarContaPorNumero(numeroConta);
+        if (conta == null) {
+            System.out.println("Conta não encontrada. Tente novamente.");
+            return;
+        }
+
+        String cpf = conta.getCpfPessoa();
+        Pessoas pessoa = buscarPessoaPorCPF(cpf);
+        if (pessoa == null) {
+            System.out.println("Dados da pessoa não encontrados. Tente novamente.");
+            return;
+        }
+
+        String nome = pessoa.getNome();
+
+        System.out.println("\n-------------------------------------");
+        System.out.println("Nome: " + nome);
+        System.out.println("CPF: " + cpf);
+        System.out.println("Deseja realmente deletar a conta número " + numeroConta + "? (S/N)");
+        String confirmacao = scanner.nextLine().toUpperCase();
+        if (!confirmacao.equals("S")) {
+            System.out.println("Operação cancelada.");
+            return;
+        }
+
+        DbContext database = new DbContext();
+
+        try {
+            database.conectarBanco();
+
+            boolean statusQuery = database.executarUpdateSql(
+                    "DELETE FROM public.contas WHERE numeroconta = " + numeroConta);
+            if (statusQuery) {
+                System.out.println("\n-------------------------------------");
+                System.out.println("\nConta número " + numeroConta + " foi deletada.");
+            }
+
             database.desconectarBanco();
         } catch (Exception e) {
             e.printStackTrace();
@@ -143,14 +302,16 @@ public class Main {
             ResultSet resultSet = database.executarQuerySql("SELECT * FROM public.pessoas");
 
             if (!resultSet.next()) {
-                System.out.println("Nenhuma pessoa cadastrada.");
+                System.out.println("\nNenhuma pessoa cadastrada.");
             } else {
-                System.out.println("Lista de Pessoas Cadastradas:");
+                System.out.println("\nLista de Pessoas Cadastradas:\n");
                 do {
                     String nome = resultSet.getString("nome");
                     String cpf = resultSet.getString("cpf");
+                    System.out.println("-------------------------------------");
                     System.out.println("Nome: " + nome + " | CPF: " + cpf);
                 } while (resultSet.next());
+                System.out.println("=====================================\n");
             }
 
             database.desconectarBanco();
@@ -167,7 +328,7 @@ public class Main {
 
         try {
             database.conectarBanco();
-
+            System.out.println();
             // Verificar se o CPF está cadastrado no banco de dados
             boolean pessoaExistente = verificarPessoaExistente(database, cpf);
             if (!pessoaExistente) {
@@ -175,10 +336,10 @@ public class Main {
                 return;
             }
 
-            System.out.println("Escolha o tipo de conta:");
+            System.out.println("Escolha o tipo de conta:\n");
             System.out.println("1 - Conta Corrente");
             System.out.println("2 - Conta Poupança");
-            System.out.print("Opção: ");
+            System.out.print("\nOpção: ");
             int opcao;
 
             try {
@@ -199,7 +360,12 @@ public class Main {
                             "INSERT INTO public.contas(numeroconta, cpf, saldo, tipo) VALUES ('" + numeroConta + "', '"
                                     + cpf + "', 0, 'Corrente')");
                     if (statusQuery) {
-                        System.out.println("Conta corrente criada com sucesso!");
+                        System.out.println("\n---------------------------------");
+                        System.out.println("CONTA CORRENTE criada com sucesso!");
+                        System.out.println("---------------------------------");
+                        System.out.println("CPF do Titular da conta: " + cpf);
+                        System.out.println("Numer da conta: " + numeroConta);
+                        System.out.println("---------------------------------");
                     }
                     break;
                 case 2:
@@ -207,7 +373,12 @@ public class Main {
                             "INSERT INTO public.contas(numeroconta, cpf, saldo, tipo) VALUES ('" + numeroConta + "', '"
                                     + cpf + "', 0, 'Poupança')");
                     if (statusQuery) {
-                        System.out.println("Conta poupança criada com sucesso!");
+                        System.out.println("\n---------------------------------");
+                        System.out.println("CONTA POUPANÇA criada com sucesso!");
+                        System.out.println("---------------------------------");
+                        System.out.println("CPF do Titular da conta: " + cpf);
+                        System.out.println("Numer da conta: " + numeroConta);
+                        System.out.println("---------------------------------");
                     }
                     break;
                 default:
@@ -252,11 +423,23 @@ public class Main {
     }
 
     public static Pessoas buscarPessoaPorCPF(String cpf) {
-        for (Pessoas pessoa : listaPessoas) {
-            if (pessoa.getCpf().equals(cpf)) {
+        DbContext database = new DbContext();
+
+        try {
+            database.conectarBanco();
+
+            ResultSet resultSet = database.executarQuerySql("SELECT * FROM public.pessoas WHERE cpf = '" + cpf + "'");
+            if (resultSet.next()) {
+                String nome = resultSet.getString("nome");
+                Pessoas pessoa = new Pessoas(nome, cpf);
                 return pessoa;
             }
+
+            database.desconectarBanco();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
         return null;
     }
 
@@ -342,11 +525,35 @@ public class Main {
     }
 
     public static Conta buscarContaPorNumero(int numeroConta) {
-        for (Conta conta : listaContas) {
-            if (conta.getNumeroConta() == numeroConta) {
+        DbContext database = new DbContext();
+
+        try {
+            database.conectarBanco();
+
+            ResultSet resultSet = database.executarQuerySql(
+                    "SELECT * FROM public.contas WHERE numeroconta = " + numeroConta);
+
+            if (resultSet.next()) {
+                String cpf = resultSet.getString("cpf");
+                double saldo = resultSet.getDouble("saldo");
+                String tipo = resultSet.getString("tipo");
+
+                Conta conta;
+                if (tipo.equals("Corrente")) {
+                    conta = new ContaCorrente(numeroConta, cpf, saldo);
+                } else if (tipo.equals("Poupança")) {
+                    conta = new ContaPoupanca(numeroConta, cpf, saldo);
+                } else {
+                    return null;
+                }
+
+                database.desconectarBanco();
                 return conta;
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
         return null;
     }
 
@@ -359,9 +566,10 @@ public class Main {
             ResultSet resultSet = database.executarQuerySql("SELECT * FROM public.contas ORDER BY cpf");
 
             if (!resultSet.next()) {
-                System.out.println("Nenhuma conta cadastrada.");
+                System.out.println("\nNenhuma conta cadastrada.");
+                System.out.println("=====================================");
             } else {
-                System.out.println("Lista de Contas Cadastradas:");
+                System.out.println("\nLista de Contas Cadastradas:");
 
                 String cpfAnterior = "";
                 String nomeAnterior = "";
@@ -382,7 +590,9 @@ public class Main {
                     if (!cpfAtual.equals(cpfAnterior)) {
                         cpfAnterior = cpfAtual;
                         nomeAnterior = nomeAtual;
+                        System.out.println("\n=====================================");
                         System.out.println("CPF: " + cpfAtual + " | Nome: " + nomeAtual);
+                        System.out.println("=====================================");
                     } else if (!nomeAtual.equals(nomeAnterior)) {
                         nomeAnterior = nomeAtual;
                         System.out.println("Nome: " + nomeAtual);
@@ -394,7 +604,7 @@ public class Main {
                     System.out.println("Número da Conta: " + numeroConta);
                     System.out.println("Saldo: R$ " + String.format("%.2f", saldo));
                     System.out.println("Tipo de Conta: " + tipoConta);
-                    System.out.println("--------------------------");
+                    System.out.println("-------------------------------------");
                 } while (resultSet.next());
             }
 
@@ -426,7 +636,9 @@ public class Main {
                     .executarQuerySql("SELECT * FROM public.contas WHERE numeroconta = '" + numeroConta + "'");
 
             if (!resultSet.next()) {
+                System.out.println("\n=====================================");
                 System.out.println("Conta não encontrada. Tente novamente.");
+                System.out.println("=====================================\n");
                 return;
             }
 
@@ -474,8 +686,10 @@ public class Main {
             boolean statusQuery = database.executarUpdateSql("UPDATE public.contas SET saldo = " + conta.getSaldo()
                     + " WHERE numeroconta = '" + numeroConta + "'");
             if (statusQuery) {
+                System.out.println("\n=====================================");
                 System.out.println("Saque de R$" + valor + " realizado. Novo saldo: R$ "
                         + String.format("%.2f", conta.getSaldo()));
+                System.out.println("=====================================\n");
             }
 
             database.desconectarBanco();
