@@ -13,11 +13,9 @@ ALTER TABLE IF EXISTS public.pessoas
 CREATE TABLE public.contas (
     id SERIAL PRIMARY KEY,
     cpf TEXT NOT NULL,
-    numConta INT GENERATED ALWAYS AS (
-        10000 + id
-    ) STORED,
+    numeroconta INT NOT NULL,
     tipoConta TEXT NOT NULL,
-    saldo DECIMAL(10,2) DEFAULT 0.00
+    saldo DECIMAL(10,2)
 );
 
 -- Change owner of 'contas' table to 'postgres'

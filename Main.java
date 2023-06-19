@@ -2,15 +2,19 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 
+import Classes.Conta;
+import Classes.ContaCorrente;
+import Classes.ContaPoupanca;
+import Classes.Pessoas;
 import Data.DbContext;
 
 public class Main {
     private static List<Pessoas> listaPessoas = new ArrayList<>();
     private static List<Conta> listaContas = new ArrayList<>();
     private static Scanner scanner = new Scanner(System.in);
-    private static int ultimoNumeroConta = 0;
 
     public static void main(String[] args) {
         exibirMenu();
@@ -99,26 +103,24 @@ public class Main {
             return;
         }
 
-        Pessoas pessoa = new Pessoas(nome, cpf);
-        listaPessoas.add(pessoa);
-        
-        //DbContext database = new DbContext();
-        //try {
-        //    database.conectarBanco();
-        //    boolean pessoaExistente = verificarPessoaExistente(database, cpf);
-        //    if (pessoaExistente) {
-        //        System.out.println("CPF já cadastrado. Não é possível cadastrar a mesma pessoa novamente.");
-        //    } else {
-        //        boolean statusQuery = database.executarUpdateSql(
-        //                "INSERT INTO public.pessoas(nome, cpf) VALUES ('" + nome + "', '" + cpf + "')");
-        //        if (statusQuery) {
-        //            System.out.println("'" + nome + "' foi cadastrado(a)!");
-        //        }
-        //    }
-        //    database.desconectarBanco();
-        //} catch (Exception e) {
-        //    e.printStackTrace();
-        //}
+        DbContext database = new DbContext();
+
+        try {
+            database.conectarBanco();
+            boolean pessoaExistente = verificarPessoaExistente(database, cpf);
+            if (pessoaExistente) {
+                System.out.println("CPF já cadastrado. Não é possível cadastrar a mesma pessoa novamente.");
+            } else {
+                boolean statusQuery = database.executarUpdateSql(
+                        "INSERT INTO public.pessoas(nome, cpf) VALUES ('" + nome + "', '" + cpf + "')");
+                if (statusQuery) {
+                    System.out.println("'" + nome + "' foi cadastrado(a)!");
+                }
+            }
+            database.desconectarBanco();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static boolean verificarPessoaExistente(DbContext database, String cpf) throws SQLException {
@@ -134,13 +136,26 @@ public class Main {
     }
 
     public static void listarPessoas() {
-        if (listaPessoas.isEmpty()) {
-            System.out.println("Nenhuma pessoa cadastrada.");
-        } else {
-            System.out.println("Lista de Pessoas Cadastradas:");
-            for (Pessoas pessoa : listaPessoas) {
-                System.out.println("Nome: " + pessoa.getNome() + " | CPF: " + pessoa.getCpf());
+        DbContext database = new DbContext();
+
+        try {
+            database.conectarBanco();
+            ResultSet resultSet = database.executarQuerySql("SELECT * FROM public.pessoas");
+
+            if (!resultSet.next()) {
+                System.out.println("Nenhuma pessoa cadastrada.");
+            } else {
+                System.out.println("Lista de Pessoas Cadastradas:");
+                do {
+                    String nome = resultSet.getString("nome");
+                    String cpf = resultSet.getString("cpf");
+                    System.out.println("Nome: " + nome + " | CPF: " + cpf);
+                } while (resultSet.next());
             }
+
+            database.desconectarBanco();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -148,37 +163,92 @@ public class Main {
         System.out.print("Digite o CPF da pessoa: ");
         String cpf = scanner.nextLine();
 
-        Pessoas pessoa = buscarPessoaPorCPF(cpf);
-        if (pessoa == null) {
-            System.out.println("CPF não encontrado. Cadastre a pessoa antes de criar a conta.");
-            return;
-        }
-
-        System.out.println("Escolha o tipo de conta:");
-        System.out.println("1 - Conta Corrente");
-        System.out.println("2 - Conta Poupança");
-        System.out.print("Opção: ");
-        int opcao;
+        DbContext database = new DbContext();
 
         try {
-            opcao = scanner.nextInt();
-            scanner.nextLine(); // Limpar o buffer do scanner
+            database.conectarBanco();
+
+            // Verificar se o CPF está cadastrado no banco de dados
+            boolean pessoaExistente = verificarPessoaExistente(database, cpf);
+            if (!pessoaExistente) {
+                System.out.println("CPF não encontrado. Cadastre a pessoa antes de criar a conta.");
+                return;
+            }
+
+            System.out.println("Escolha o tipo de conta:");
+            System.out.println("1 - Conta Corrente");
+            System.out.println("2 - Conta Poupança");
+            System.out.print("Opção: ");
+            int opcao;
+
+            try {
+                opcao = scanner.nextInt();
+                scanner.nextLine(); // Limpar o buffer do scanner
+            } catch (Exception e) {
+                System.out.println("Opção inválida. A conta não foi criada.");
+                return;
+            }
+
+            // Gerar um número de conta único
+            String numeroConta = gerarNumeroContaUnico();
+
+            boolean statusQuery;
+            switch (opcao) {
+                case 1:
+                    statusQuery = database.executarUpdateSql(
+                            "INSERT INTO public.contas(numeroconta, cpf, saldo, tipo) VALUES ('" + numeroConta + "', '"
+                                    + cpf + "', 0, 'Corrente')");
+                    if (statusQuery) {
+                        System.out.println("Conta corrente criada com sucesso!");
+                    }
+                    break;
+                case 2:
+                    statusQuery = database.executarUpdateSql(
+                            "INSERT INTO public.contas(numeroconta, cpf, saldo, tipo) VALUES ('" + numeroConta + "', '"
+                                    + cpf + "', 0, 'Poupança')");
+                    if (statusQuery) {
+                        System.out.println("Conta poupança criada com sucesso!");
+                    }
+                    break;
+                default:
+                    System.out.println("Opção inválida. A conta não foi criada.");
+                    break;
+            }
+
+            database.desconectarBanco();
         } catch (Exception e) {
-            System.out.println("Opção inválida. A conta não foi criada.");
-            return;
+            e.printStackTrace();
+        }
+    }
+
+    public static String gerarNumeroContaUnico() {
+        // Gere um número de conta aleatório com 8 dígitos
+        Random random = new Random();
+        int numeroConta = random.nextInt(90000000) + 10000000;
+
+        // Verifique se o número de conta já existe no banco de dados
+        DbContext database = new DbContext();
+        try {
+            database.conectarBanco();
+            ResultSet resultSet = database
+                    .executarQuerySql("SELECT * FROM public.contas WHERE numeroconta = '" + numeroConta + "'");
+
+            // Se o número de conta já existe, gere um novo número até encontrar um único
+            while (resultSet.next()) {
+                numeroConta = random.nextInt(90000000) + 10000000;
+                resultSet = database
+                        .executarQuerySql("SELECT * FROM public.contas WHERE numeroconta = '" + numeroConta + "'");
+            }
+
+            // Feche o ResultSet após o uso
+            resultSet.close();
+
+            database.desconectarBanco();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        switch (opcao) {
-            case 1:
-                criarContaCorrente(pessoa);
-                break;
-            case 2:
-                criarContaPoupanca(pessoa);
-                break;
-            default:
-                System.out.println("Opção inválida. A conta não foi criada.");
-                break;
-        }
+        return String.valueOf(numeroConta);
     }
 
     public static Pessoas buscarPessoaPorCPF(String cpf) {
@@ -188,45 +258,6 @@ public class Main {
             }
         }
         return null;
-    }
-
-    public static void criarContaCorrente(Pessoas pessoa) {
-        int numeroConta = gerarNumeroConta();
-
-        if (verificarNumeroContaUnico(numeroConta)) {
-            Conta contaCorrente = new ContaCorrente(numeroConta, pessoa.getCpf(), 0.0);
-            listaContas.add(contaCorrente);
-
-            System.out.println("Conta corrente criada com sucesso! Número da conta: " + numeroConta);
-        } else {
-            System.out.println("Erro ao criar a conta. Número da conta não é único.");
-        }
-    }
-
-    public static void criarContaPoupanca(Pessoas pessoa) {
-        int numeroConta = gerarNumeroConta();
-
-        if (verificarNumeroContaUnico(numeroConta)) {
-            Conta contaPoupanca = new ContaPoupanca(numeroConta, pessoa.getCpf(), 0.0);
-            listaContas.add(contaPoupanca);
-
-            System.out.println("Conta poupança criada com sucesso! Número da conta: " + numeroConta);
-        } else {
-            System.out.println("Erro ao criar a conta. Número da conta não é único.");
-        }
-    }
-
-    public static boolean verificarNumeroContaUnico(int numeroConta) {
-        for (Conta conta : listaContas) {
-            if (conta.getNumeroConta() == numeroConta) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public static int gerarNumeroConta() {
-        return ++ultimoNumeroConta;
     }
 
     public static boolean validarNome(String nome) {
@@ -254,24 +285,60 @@ public class Main {
             return;
         }
 
-        Conta conta = buscarContaPorNumero(numeroConta);
-        if (conta == null) {
-            System.out.println("Conta não encontrada. Tente novamente.");
-            return;
-        }
-
-        System.out.print("Digite o valor a ser depositado: R$");
-        double valor;
+        DbContext database = new DbContext();
 
         try {
-            valor = scanner.nextDouble();
-            scanner.nextLine();
-        } catch (Exception e) {
-            System.out.println("Valor inválido. Tente novamente.");
-            return;
-        }
+            database.conectarBanco();
 
-        conta.depositar(valor);
+            ResultSet resultSet = database
+                    .executarQuerySql("SELECT * FROM public.contas WHERE numeroconta = '" + numeroConta + "'");
+
+            if (!resultSet.next()) {
+                System.out.println("Conta não encontrada. Tente novamente.");
+                return;
+            }
+
+            String cpf = resultSet.getString("cpf");
+            String tipoConta = resultSet.getString("tipo");
+            double saldo = resultSet.getDouble("saldo");
+
+            resultSet.close();
+
+            Conta conta;
+            if (tipoConta.equalsIgnoreCase("Corrente")) {
+                conta = new ContaCorrente(numeroConta, cpf, saldo);
+            } else if (tipoConta.equalsIgnoreCase("Poupança")) {
+                conta = new ContaPoupanca(numeroConta, cpf, saldo);
+            } else {
+                System.out.println("Tipo de conta inválido. Tente novamente.");
+                return;
+            }
+
+            System.out.print("Digite o valor a ser depositado: R$");
+            double valor;
+
+            try {
+                valor = scanner.nextDouble();
+                scanner.nextLine();
+            } catch (Exception e) {
+                System.out.println("Valor inválido. Tente novamente.");
+                return;
+            }
+
+            conta.depositar(valor);
+
+            // Atualizar o saldo da conta no banco de dados
+            boolean statusQuery = database.executarUpdateSql("UPDATE public.contas SET saldo = " + conta.getSaldo()
+                    + " WHERE numeroconta = '" + numeroConta + "'");
+            if (statusQuery) {
+                System.out.println("Depósito de R$" + valor + " realizado. Novo saldo: R$ "
+                        + String.format("%.2f", conta.getSaldo()));
+            }
+
+            database.desconectarBanco();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static Conta buscarContaPorNumero(int numeroConta) {
@@ -284,23 +351,57 @@ public class Main {
     }
 
     public static void listarContas() {
-        if (listaContas.isEmpty()) {
-            System.out.println("Nenhuma conta cadastrada.");
-        } else {
-            System.out.println("Lista de Contas Cadastradas:");
-            for (Conta conta : listaContas) {
-                System.out.println("Número da Conta: " + conta.getNumeroConta());
-                System.out.println("CPF da Pessoa: " + conta.getCpfPessoa());
-                System.out.println("Saldo: R$ " + conta.getSaldo());
+        DbContext database = new DbContext();
 
-                if (conta instanceof ContaCorrente) {
-                    System.out.println("Tipo de Conta: Conta Corrente");
-                } else if (conta instanceof ContaPoupanca) {
-                    System.out.println("Tipo de Conta: Conta Poupança");
-                }
+        try {
+            database.conectarBanco();
 
-                System.out.println("--------------------------");
+            ResultSet resultSet = database.executarQuerySql("SELECT * FROM public.contas ORDER BY cpf");
+
+            if (!resultSet.next()) {
+                System.out.println("Nenhuma conta cadastrada.");
+            } else {
+                System.out.println("Lista de Contas Cadastradas:");
+
+                String cpfAnterior = "";
+                String nomeAnterior = "";
+
+                do {
+                    String numeroConta = resultSet.getString("numeroconta");
+                    String cpfAtual = resultSet.getString("cpf");
+                    String nomeAtual = "";
+
+                    // Fetch the name of the person from the database based on the CPF
+                    ResultSet resultSetPessoa = database
+                            .executarQuerySql("SELECT nome FROM public.pessoas WHERE cpf = '" + cpfAtual + "'");
+                    if (resultSetPessoa.next()) {
+                        nomeAtual = resultSetPessoa.getString("nome");
+                    }
+                    resultSetPessoa.close();
+
+                    if (!cpfAtual.equals(cpfAnterior)) {
+                        cpfAnterior = cpfAtual;
+                        nomeAnterior = nomeAtual;
+                        System.out.println("CPF: " + cpfAtual + " | Nome: " + nomeAtual);
+                    } else if (!nomeAtual.equals(nomeAnterior)) {
+                        nomeAnterior = nomeAtual;
+                        System.out.println("Nome: " + nomeAtual);
+                    }
+
+                    double saldo = resultSet.getDouble("saldo");
+                    String tipoConta = resultSet.getString("tipo");
+
+                    System.out.println("Número da Conta: " + numeroConta);
+                    System.out.println("Saldo: R$ " + String.format("%.2f", saldo));
+                    System.out.println("Tipo de Conta: " + tipoConta);
+                    System.out.println("--------------------------");
+                } while (resultSet.next());
             }
+
+            resultSet.close();
+            database.desconectarBanco();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -316,36 +417,70 @@ public class Main {
             return;
         }
 
-        Conta conta = buscarContaPorNumero(numeroConta);
-        if (conta == null) {
-            System.out.println("Conta não encontrada. Tente novamente.");
-            return;
-        }
-
-        System.out.print("Digite o valor a ser sacado: R$");
-        double valor;
+        DbContext database = new DbContext();
 
         try {
-            valor = scanner.nextDouble();
-            scanner.nextLine(); // Limpar o buffer do scanner
+            database.conectarBanco();
+
+            ResultSet resultSet = database
+                    .executarQuerySql("SELECT * FROM public.contas WHERE numeroconta = '" + numeroConta + "'");
+
+            if (!resultSet.next()) {
+                System.out.println("Conta não encontrada. Tente novamente.");
+                return;
+            }
+
+            String cpf = resultSet.getString("cpf");
+            String tipoConta = resultSet.getString("tipo");
+            double saldo = resultSet.getDouble("saldo");
+
+            resultSet.close();
+
+            Conta conta;
+            if (tipoConta.equalsIgnoreCase("Corrente")) {
+                conta = new ContaCorrente(numeroConta, cpf, saldo);
+            } else if (tipoConta.equalsIgnoreCase("Poupança")) {
+                conta = new ContaPoupanca(numeroConta, cpf, saldo);
+            } else {
+                System.out.println("Tipo de conta inválido. Tente novamente.");
+                return;
+            }
+
+            System.out.print("Digite o valor a ser sacado: R$");
+            double valor;
+
+            try {
+                valor = scanner.nextDouble();
+                scanner.nextLine(); // Limpar o buffer do scanner
+            } catch (Exception e) {
+                System.out.println("Valor inválido. Tente novamente.");
+                return;
+            }
+
+            if (conta instanceof ContaCorrente) {
+                ContaCorrente contaCorrente = (ContaCorrente) conta;
+                if (!contaCorrente.sacar(valor)) {
+                    System.out.println("Saldo insuficiente para realizar o saque.");
+                    return;
+                }
+            } else {
+                if (!conta.sacar(valor)) {
+                    System.out.println("Saldo insuficiente para realizar o saque.");
+                    return;
+                }
+            }
+
+            // Atualizar o saldo da conta no banco de dados
+            boolean statusQuery = database.executarUpdateSql("UPDATE public.contas SET saldo = " + conta.getSaldo()
+                    + " WHERE numeroconta = '" + numeroConta + "'");
+            if (statusQuery) {
+                System.out.println("Saque de R$" + valor + " realizado. Novo saldo: R$ "
+                        + String.format("%.2f", conta.getSaldo()));
+            }
+
+            database.desconectarBanco();
         } catch (Exception e) {
-            System.out.println("Valor inválido. Tente novamente.");
-            return;
+            e.printStackTrace();
         }
-
-        if (conta instanceof ContaCorrente) {
-            ContaCorrente contaCorrente = (ContaCorrente) conta;
-            if (!contaCorrente.sacar(valor)) {
-                System.out.println("Saldo insuficiente para realizar o saque.");
-                return;
-            }
-        } else {
-            if (!conta.sacar(valor)) {
-                System.out.println("Saldo insuficiente para realizar o saque.");
-                return;
-            }
-        }
-
-        System.out.println("Saque realizado com sucesso!");
     }
 }
