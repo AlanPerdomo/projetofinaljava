@@ -7,6 +7,7 @@ import java.sql.Statement;
 
 public class DbContext {
 
+    // Atualizar com base no Banco de dados que será utilizado
     private String url = "jdbc:postgresql://localhost:5432/banco";
     private String usuario = "postgres";
     private String senha = "1234";
