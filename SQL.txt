@@ -14,7 +14,7 @@ CREATE TABLE public.contas (
     id SERIAL PRIMARY KEY,
     cpf TEXT NOT NULL,
     numeroconta INT NOT NULL,
-    tipoConta TEXT NOT NULL,
+    tipo TEXT NOT NULL,
     saldo DECIMAL(10,2)
 );
 
