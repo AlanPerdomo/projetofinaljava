@@ -1,5 +1,5 @@
 package Classes;
-public class Conta {
+public abstract class Conta {
     private int numeroConta;
     private String cpfPessoa;
     private double saldo;
