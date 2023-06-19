@@ -1,0 +1,25 @@
+-- Create 'pessoas' table
+CREATE TABLE public.pessoas (
+    id SERIAL PRIMARY KEY,
+    nome TEXT NOT NULL,
+    cpf TEXT NOT NULL
+);
+
+-- Change owner of 'pessoas' table to 'postgres'
+ALTER TABLE IF EXISTS public.pessoas
+    OWNER TO postgres;
+
+-- Create 'contas' table
+CREATE TABLE public.contas (
+    id SERIAL PRIMARY KEY,
+    cpf TEXT NOT NULL,
+    numConta INT GENERATED ALWAYS AS (
+        10000 + id
+    ) STORED,
+    tipoConta TEXT NOT NULL,
+    saldo DECIMAL(10,2) DEFAULT 0.00
+);
+
+-- Change owner of 'contas' table to 'postgres'
+ALTER TABLE IF EXISTS public.contas
+    OWNER TO postgres;
