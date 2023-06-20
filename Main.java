@@ -477,14 +477,16 @@ public class Main {
             double valor;
 
             try {
-                valor = scanner.nextDouble();
-                scanner.nextLine();
+                String inputValor = scanner.nextLine();
+
+                // Verificar se o valor é numérico
+                valor = Double.parseDouble(inputValor);
 
                 if (valor < 0) {
                     System.out.println("O valor do depósito não pode ser negativo. Tente novamente.");
                     return;
                 }
-            } catch (Exception e) {
+            } catch (NumberFormatException e) {
                 System.out.println("Valor inválido. Tente novamente.");
                 return;
             }
@@ -643,14 +645,16 @@ public class Main {
             double valor;
 
             try {
-                valor = scanner.nextDouble();
-                scanner.nextLine(); // Limpar o buffer do scanner
+                String inputValor = scanner.nextLine();
+
+                // Verificar se o valor é numérico
+                valor = Double.parseDouble(inputValor);
 
                 if (valor < 0) {
                     System.out.println("O valor do saque não pode ser negativo. Tente novamente.");
                     return;
                 }
-            } catch (Exception e) {
+            } catch (NumberFormatException e) {
                 System.out.println("Valor inválido. Tente novamente.");
                 return;
             }
