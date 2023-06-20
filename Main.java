@@ -479,6 +479,11 @@ public class Main {
             try {
                 valor = scanner.nextDouble();
                 scanner.nextLine();
+
+                if (valor < 0) {
+                    System.out.println("O valor do depósito não pode ser negativo. Tente novamente.");
+                    return;
+                }
             } catch (Exception e) {
                 System.out.println("Valor inválido. Tente novamente.");
                 return;
@@ -640,6 +645,11 @@ public class Main {
             try {
                 valor = scanner.nextDouble();
                 scanner.nextLine(); // Limpar o buffer do scanner
+
+                if (valor < 0) {
+                    System.out.println("O valor do saque não pode ser negativo. Tente novamente.");
+                    return;
+                }
             } catch (Exception e) {
                 System.out.println("Valor inválido. Tente novamente.");
                 return;
