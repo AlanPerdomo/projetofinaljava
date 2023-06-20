@@ -13,23 +13,22 @@ public class Main {
     private static Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
-        exibirMenu();
 
         int opcao;
         int opcao2;
 
-        try {
-            opcao = scanner.nextInt();
-            scanner.nextLine(); // Limpar o buffer do scanner
-            System.out.println("=====================================");
-        } catch (Exception e) {
-            System.out.println("Opção inválida. Tente novamente.");
-            return;
-        }
-
-        while (opcao != 0) {
+        while (true) {
             try {
+                exibirMenu();
+                String input = scanner.nextLine();
+                opcao = Integer.parseInt(input);
+                System.out.println("=====================================");
+
                 switch (opcao) {
+                    case 0:
+                        System.out.println("Programa encerrado.");
+                        scanner.close();
+                        return;
                     case 1:
                         System.out.println("\nCADASTRAR PESSOA\n");
                         cadastrarPessoa();
@@ -44,14 +43,9 @@ public class Main {
                         System.out.println("2 - Listar Contas");
                         System.out.print("\nOpção: ");
 
-                        try {
-                            opcao2 = scanner.nextInt();
-                            scanner.nextLine(); // Limpar o buffer do scanner
-                            System.out.println("=====================================");
-                        } catch (Exception e) {
-                            System.out.println("\nOpção inválida. Tente novamente.");
-                            opcao2 = -1; // Definir opção inválida para continuar o loop
-                        }
+                        input = scanner.nextLine();
+                        opcao2 = Integer.parseInt(input);
+                        System.out.println("=====================================");
 
                         switch (opcao2) {
                             case 1:
@@ -71,14 +65,9 @@ public class Main {
                         System.out.println("2 - Deletar Conta");
                         System.out.print("\nOpção: ");
 
-                        try {
-                            opcao2 = scanner.nextInt();
-                            scanner.nextLine(); // Limpar o buffer do scanner
-                            System.out.println("=====================================");
-                        } catch (Exception e) {
-                            System.out.println("\nOpção inválida. Tente novamente.");
-                            opcao2 = -1; // Definir opção inválida para continuar o loop
-                        }
+                        input = scanner.nextLine();
+                        opcao2 = Integer.parseInt(input);
+                        System.out.println("=====================================");
 
                         switch (opcao2) {
                             case 1:
@@ -93,7 +82,6 @@ public class Main {
                                 System.out.println("\nOpção inválida. Tente novamente.");
                                 break;
                         }
-
                         break;
                     case 5:
                         System.out.println("\nDEPOSITO\n");
@@ -107,24 +95,12 @@ public class Main {
                         System.out.println("Opção inválida. Tente novamente.\n");
                         break;
                 }
+            } catch (NumberFormatException e) {
+                System.out.println("Opção inválida. Tente novamente.");
             } catch (Exception e) {
                 System.out.println("Ocorreu um erro. Tente novamente.");
             }
-
-            exibirMenu();
-
-            try {
-                opcao = scanner.nextInt();
-                scanner.nextLine(); // Limpar o buffer do scanner
-                System.out.println("=====================================");
-            } catch (Exception e) {
-                System.out.println("Opção inválida. Tente novamente.");
-                opcao = -1; // Definir opção inválida para continuar o loop
-            }
         }
-
-        System.out.println("Programa encerrado.");
-        scanner.close();
     }
 
     public static void exibirMenu() {
