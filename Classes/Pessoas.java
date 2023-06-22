@@ -39,6 +39,7 @@ public class Pessoas {
         this.cpf = cpf;
     }
 
+    // Função para cadastrar pessoa
     public static void cadastrarPessoa(Scanner scanner) {
         System.out.print("Digite o nome da pessoa: ");
         String nome = scanner.nextLine();
@@ -58,6 +59,7 @@ public class Pessoas {
 
         DbContext database = new DbContext();
 
+        // Cadastra a pessoa no banco de dados se o cpf informado for unico
         try {
             database.conectarBanco();
             boolean pessoaExistente = verificarPessoaExistente(database, cpf);
@@ -78,6 +80,7 @@ public class Pessoas {
         }
     }
 
+    // Função para verificar se o CPF informado ja esta cadastrado no banco de dados
     public static boolean verificarPessoaExistente(DbContext database, String cpf) throws SQLException {
         String query = "SELECT COUNT(*) FROM public.pessoas WHERE cpf = '" + cpf + "'";
         ResultSet resultSet = database.executarQuerySql(query);
@@ -90,11 +93,14 @@ public class Pessoas {
         return false;
     }
 
+    // Verifica se o nome informado contem apenas letras e espaços, alem de nao
+    // poder ser um nove em branco
     public static boolean validarNome(String nome) {
         // Verifica se o nome contém apenas letras e espaços
         return nome.matches("[a-zA-Z\\s]+") && !nome.trim().isEmpty();
     }
 
+    // Verifica se o cpf é valido
     public static boolean validarCPF(String cpf) {
         // Remove caracteres não numéricos do CPF
         cpf = cpf.replaceAll("\\D+", "");
@@ -103,6 +109,7 @@ public class Pessoas {
         return cpf.matches("\\d{11}");
     }
 
+    // Função para deletar pessoa com base em um cpf informado
     public static void deletarPessoa(Scanner scanner) {
         System.out.print("Digite o CPF da pessoa a ser deletada: ");
         String cpf = scanner.nextLine();
@@ -129,14 +136,14 @@ public class Pessoas {
         try {
             database.conectarBanco();
 
-            // Deletar as contas associadas ao CPF
+            // Deleta as contas associadas ao CPF
             boolean statusContaQuery = database
                     .executarUpdateSql("DELETE FROM public.contas WHERE cpf = '" + cpf + "'");
             if (statusContaQuery) {
                 System.out.println("\n Todas as contas associadas ao CPF " + cpf + " foram deletadas.");
             }
 
-            // Deletar a pessoa com o CPF especificado
+            // Deleta a pessoa com o CPF especificado
             boolean statusPessoaQuery = database
                     .executarUpdateSql("DELETE FROM public.pessoas WHERE cpf = '" + cpf + "'");
             if (statusPessoaQuery) {
@@ -149,6 +156,7 @@ public class Pessoas {
         }
     }
 
+    // Função para buscar a pessoa com base no CPF informado
     public static Pessoas buscarPessoaPorCPF(String cpf) {
         DbContext database = new DbContext();
 
@@ -170,6 +178,7 @@ public class Pessoas {
         return null;
     }
 
+    // Função para listar todas as pessoas cadastradas no banco de dados
     public static void listarPessoas() {
         DbContext database = new DbContext();
 

@@ -46,6 +46,7 @@ public abstract class Conta {
         }
     }
 
+    // Função para criar uma conta
     public static void criarConta(Scanner scanner) {
         System.out.print("Digite o CPF da pessoa: ");
         String cpf = scanner.nextLine();
@@ -118,13 +119,14 @@ public abstract class Conta {
         }
     }
 
+    // Função para deletar uma conta
     public static void deletarConta(Scanner scanner) {
         System.out.print("Digite o número da conta a ser deletada: ");
         int numeroConta;
 
         try {
             numeroConta = scanner.nextInt();
-            scanner.nextLine(); // Limpar o buffer do scanner
+            scanner.nextLine();
         } catch (Exception e) {
             System.out.println("Número de conta inválido. Tente novamente.");
             return;
@@ -173,6 +175,7 @@ public abstract class Conta {
         }
     }
 
+    // Função para listar as contas
     public static void listarContas() {
         DbContext database = new DbContext();
 
@@ -195,7 +198,7 @@ public abstract class Conta {
                     String cpfAtual = resultSet.getString("cpf");
                     String nomeAtual = "";
 
-                    // Fetch the name of the person from the database based on the CPF
+                    // Verifica o nome da pessoa no banco de dados com base no CPF informado
                     ResultSet resultSetPessoa = database
                             .executarQuerySql("SELECT nome FROM public.pessoas WHERE cpf = '" + cpfAtual + "'");
                     if (resultSetPessoa.next()) {
@@ -231,6 +234,7 @@ public abstract class Conta {
         }
     }
 
+    // Função para fazer deposito na conta
     public static void realizarDeposito(Scanner scanner) {
         System.out.print("Digite o número da conta: ");
         int numeroConta;
@@ -256,12 +260,14 @@ public abstract class Conta {
                 return;
             }
 
+            // Busca as informações da conta com base no numero de conta informado
             String cpf = resultSet.getString("cpf");
             String tipoConta = resultSet.getString("tipo");
             double saldo = resultSet.getDouble("saldo");
 
             resultSet.close();
 
+            // Verifica se é uma conta corrente ou conta poupança
             Conta conta;
             if (tipoConta.equalsIgnoreCase("Corrente")) {
                 conta = new ContaCorrente(numeroConta, cpf, saldo);
@@ -306,13 +312,14 @@ public abstract class Conta {
         }
     }
 
+    // Função para fazer saque na conta
     public static void realizarSaque(Scanner scanner) {
         System.out.print("Digite o número da conta: ");
         int numeroConta;
-
+        // Veficifa a entrada do usuário
         try {
             numeroConta = scanner.nextInt();
-            scanner.nextLine(); // Limpar o buffer do scanner
+            scanner.nextLine();
         } catch (Exception e) {
             System.out.println("Número de conta inválido. Tente novamente.");
             return;
@@ -396,26 +403,27 @@ public abstract class Conta {
         }
     }
 
+    // Função para gerar numero de conta
     public static String gerarNumeroContaUnico() {
         // Gere um número de conta aleatório com 8 dígitos
         Random random = new Random();
         int numeroConta = random.nextInt(90000000) + 10000000;
 
-        // Verifique se o número de conta já existe no banco de dados
+        // Verifica se o número de conta já existe no banco de dados
         DbContext database = new DbContext();
         try {
             database.conectarBanco();
             ResultSet resultSet = database
                     .executarQuerySql("SELECT * FROM public.contas WHERE numeroconta = '" + numeroConta + "'");
 
-            // Se o número de conta já existe, gere um novo número até encontrar um único
+            // Se o número de conta já existe no banco de dados um novo numero de conta é
+            // gerado ate que seja um numero unico
             while (resultSet.next()) {
                 numeroConta = random.nextInt(90000000) + 10000000;
                 resultSet = database
                         .executarQuerySql("SELECT * FROM public.contas WHERE numeroconta = '" + numeroConta + "'");
             }
 
-            // Feche o ResultSet após o uso
             resultSet.close();
 
             database.desconectarBanco();
@@ -426,6 +434,7 @@ public abstract class Conta {
         return String.valueOf(numeroConta);
     }
 
+    // Função para Buscar a conta com base no numer de conta informado
     public static Conta buscarContaPorNumero(int numeroConta) {
         DbContext database = new DbContext();
 
