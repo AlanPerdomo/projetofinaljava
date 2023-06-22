@@ -92,7 +92,7 @@ public class Pessoas {
 
     public static boolean validarNome(String nome) {
         // Verifica se o nome contém apenas letras e espaços
-        return nome.matches("[a-zA-Z\\s]+");
+        return nome.matches("[a-zA-Z\\s]+") && !nome.trim().isEmpty();
     }
 
     public static boolean validarCPF(String cpf) {
