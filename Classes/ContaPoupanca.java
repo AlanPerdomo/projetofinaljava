@@ -17,11 +17,13 @@ public class ContaPoupanca extends Conta {
     }
 
     @Override
+    // Função para fazer deposito na conta poupança
     public void depositar(double valor) {
         super.depositar(valor);
         aplicarJuros();
     }
 
+    // Função par aplicar o juros no momento do deposito
     private void aplicarJuros() {
         double juros = getSaldo() * taxaJuros;
         setSaldo(getSaldo() + juros);
